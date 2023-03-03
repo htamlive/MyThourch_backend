@@ -3,8 +3,8 @@ import requests
 import string
 import re
 
-# MAX_CHAR = 8000
-MAX_CHAR = 500
+MAX_CHAR = 1000
+# MAX_CHAR = 500
 
 def crawl_url(url: str) -> str:
     url = url

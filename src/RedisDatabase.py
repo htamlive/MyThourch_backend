@@ -243,7 +243,7 @@ class RedisDatabase():
         if(key is None):
             return None
 
-        paragraph = self.r.hget(key, 'metadata')
-
+        paragraph = str(self.r.hget(key, 'metadata'), 'UTF-8')
+        print("redis: " + paragraph)
         return paragraph
     

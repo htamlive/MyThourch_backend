@@ -8,6 +8,7 @@ from src.crawl_data import crawl_url
 from flask import Flask,request
 import json
 from flask_cors import CORS
+import openai
 
 # print(os.environ["OPENAI_API_KEY"])
 # print(os.getenv("REDIS_HOST"))
@@ -26,6 +27,7 @@ async def hello_world():
 def listen_url():
     print(request)
     url = request.json['url']
+    openai.api_key = request.json['apiKey']
     documentInteraction.insert_document(crawl_url(url))
     documentInteraction.processing_document()
     payload = documentInteraction.get_data()
