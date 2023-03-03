@@ -12,6 +12,7 @@ host = os.getenv("REDIS_HOST")
 port = os.getenv("REDIS_PORT")
 password = os.getenv("REDIS_PASSWORD")
 INDEX_NAME = "hcmuwus-db"
+REDIS_ACTIVATE = os.getenv("REDIS_ACTIVATE")
 
 # print("host: ", host)
 # print("port: ", port)
@@ -40,7 +41,8 @@ class RedisDatabase():
         self.port = port
         self.password = password
         self.dict = {}
-        self.r = Redis(host = host, port = port, password = password)
+        if (REDIS_ACTIVATE == "TRUE"):
+            self.r = Redis(host = host, port = port, password = password)
 
     def get_idx(self, user_name : str):
         if(self.dict.get(user_name) is None):
