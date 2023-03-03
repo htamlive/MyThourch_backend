@@ -19,10 +19,12 @@ CORS(app)
 
 @app.route("/")
 async def hello_world():
+    print(request)
     return "<p>Hello, World!</p>"
 
 @app.route('/api/wiki_retrieve/', methods=['POST'])
 def listen_url():
+    print(request)
     url = request.json['url']
     documentInteraction.insert_document(crawl_url(url))
     documentInteraction.processing_document()
@@ -37,6 +39,7 @@ def listen_url():
 
 @app.route('/api/user_interact/', methods=['POST'])
 def listen_user():
+    print(request)
     sentence = request.json['sentence']
     prompt = request.json['prompt']
     if (prompt == "Explain more about this"):

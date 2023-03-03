@@ -1,5 +1,6 @@
 DEBUG = True
 
+from src import complete_prompt
 from src.crawl_data import crawl_url
 import src.debug_helper
 from src.RedisDatabase import *
@@ -121,17 +122,23 @@ class DocumentInteraction():
         self.document = ""
 
         self.model = ModelInteraction()
+        self.redis = RedisDatabase()
 
         if (REDIS_ACTIVATE == "TRUE"):
-            print("ERRORRRRRRRRRRRRRRRRRR")
-            self.redis = RedisDatabase()
+            # print("ERRORRRRRRRRRRRRRRRRRR")
             self.redis.delete_data()
             self.redis.create_index()
         
 
     def insert_document(self, document: str) -> None:
         self.document = document
-
+        self.data = []
+        self.paragraphs = []
+        
+        if (REDIS_ACTIVATE == "TRUE"):
+            self.redis.delete_data()
+            self.redis.create_index()
+        
     def get_data(self) -> list:
         return self.data
     
@@ -152,7 +159,8 @@ class DocumentInteraction():
         result = ""
         for idx, paragraph in enumerate(self.paragraphs):
             result += self.processing_paragraph(paragraph) + ' '
-            self.redis.insert_paragraph(f'para_{idx}', paragraph)
+            if (REDIS_ACTIVATE == "TRUE"):
+                self.redis.insert_paragraph(f'para_{idx}', paragraph)
         
         self.paragraphs = self.model.rephase_document(result)
         
