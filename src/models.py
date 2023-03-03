@@ -1,6 +1,5 @@
 DEBUG = True
 
-import src.complete_prompt
 from src.crawl_data import crawl_url
 import src.debug_helper
 from src.RedisDatabase import *
