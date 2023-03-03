@@ -55,3 +55,4 @@ Werkzeug==2.2.3
 win32-setctime==1.1.0
 yarg==0.1.9
 yarl==1.8.2
+gunicorn==20.0.4
