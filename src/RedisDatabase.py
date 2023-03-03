@@ -5,15 +5,17 @@ import numpy as np
 from redis import Redis
 from redis.commands.search.field import VectorField, TagField, NumericField
 from redis.commands.search.query import Query
-from dotenv import load_dotenv
-load_dotenv('./backend/key.env.local')
 
-openai.api_key = os.environ["OPENAI_API_KEY"]
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-host = os.environ["REDIS_HOST"]
-port = os.environ["REDIS_PORT"]
-password = os.environ["REDIS_PASSWORD"]
+host = os.getenv("REDIS_HOST")
+port = os.getenv("REDIS_PORT")
+password = os.getenv("REDIS_PASSWORD")
 INDEX_NAME = "hcmuwus-db"
+
+# print("host: ", host)
+# print("port: ", port)
+# print("password: ", password)
 
 n_vec = 10000
 dim = 1536

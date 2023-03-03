@@ -1,0 +1,6 @@
+# python
+*.pyc
+
+# env
+.env
+.env.local

@@ -1,25 +1,23 @@
 DEBUG = True
 
-import complete_prompt
-from crawl_data import crawl_url
-import debug_helper
+import src.complete_prompt
+from src.crawl_data import crawl_url
+import src.debug_helper
+from src.RedisDatabase import *
 
 import os
 import openai
 import json
-from dotenv import load_dotenv
-load_dotenv('./backend/key.env.local')
-from RedisDatabase import *
 
 # openai api key
-openai.api_key = os.environ["OPENAI_API_KEY"]
+openai.api_key = os.getenv("OPENAI_API_KEY")
 OPENAI_EMBEDDINGS_ENGINE = "text-embedding-ada-002"
 OPENAI_COMPLETIONS_ENGINE = "text-davinci-003"
 MAX_TOKENS = 2000
 TEMPERATURE = 0
 
 # load prompt from json file
-prompt_list =  json.load(open('./backend/prompt.json', 'r'))
+prompt_list =  json.load(open('./src/prompt.json', 'r'))
 
 
 class ModelInteraction():

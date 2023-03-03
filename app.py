@@ -1,12 +1,16 @@
-from models import ModelInteraction, DocumentInteraction
-from crawl_data import crawl_url
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+from src.models import ModelInteraction, DocumentInteraction
+from src.crawl_data import crawl_url
 
 from flask import Flask,request
-import os
 import json
 from flask_cors import CORS
-from dotenv import load_dotenv
-load_dotenv('./key.env.local')
+
+# print(os.environ["OPENAI_API_KEY"])
+# print(os.getenv("REDIS_HOST"))
 
 documentInteraction = DocumentInteraction()
 
