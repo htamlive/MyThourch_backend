@@ -24,7 +24,8 @@ prompt_list =  json.load(open('./src/prompt.json', 'r'))
 
 
 class ModelInteraction():
-    def __init__(self):
+    def __init__(self, send_stage: function):
+        self.send_stage = send_stage
         pass
     
     def complete(self, prompt, max_tokens: int = MAX_TOKENS) -> str:
@@ -116,13 +117,13 @@ class ModelInteraction():
         return response
 
 class DocumentInteraction():
-    def __init__(self):
+    def __init__(self, send_stage: function):
         self.data = []
         self.paragraphs = []
         self.document = ""
-
-        self.model = ModelInteraction()
-        self.redis = RedisDatabase()
+        self.send_stage = send_stage
+        self.model = ModelInteraction(send_stage)
+        self.redis = RedisDatabase(send_stage)
 
         if (REDIS_ACTIVATE == "TRUE"):
             # print("ERRORRRRRRRRRRRRRRRRRR")

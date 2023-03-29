@@ -9,14 +9,22 @@ from flask import Flask,request
 import json
 from flask_cors import CORS
 import openai
+from flask_socketio import SocketIO, emit
+
 
 # print(os.environ["OPENAI_API_KEY"])
 # print(os.getenv("REDIS_HOST"))
 
-documentInteraction = DocumentInteraction()
 
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app)
+
+@socketio.on('process_stage')
+def send_stage(stage):
+    emit('stage_update', stage, broadcast=True)
+
+documentInteraction = DocumentInteraction(send_stage)
 
 @app.route("/")
 async def hello_world():
@@ -37,6 +45,9 @@ def listen_url():
         "payload" : json.dumps(payload)
     }
     return response
+
+
+
     
 
 @app.route('/api/user_interact/', methods=['POST'])
@@ -65,4 +76,4 @@ def listen_user():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app)

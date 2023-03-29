@@ -36,10 +36,11 @@ documents = [
 
 class RedisDatabase():
     # Initialize OpenAI API with your API key
-    def __init__(self, host = host, port = port, password = password):
+    def __init__(self, send_stage: function, host = host, port = port, password = password):
         self.host = host
         self.port = port
         self.password = password
+        self.send_stage = send_stage
         self.dict = {}
         if (REDIS_ACTIVATE == "TRUE"):
             self.r = Redis(host = host, port = port, password = password)
