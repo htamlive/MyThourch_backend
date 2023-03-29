@@ -193,7 +193,7 @@ class DocumentInteraction():
                         new_paragraph =  self.model.expand_topics_from_clue(topics, query, s)
 
                     new_paragraph = self.paragraph_to_sentence(new_paragraph)
-                    print(new_paragraph)
+                    print(new_paragraph[:10] + '...')
                     # update the paragraph
                     self.data[idx] = new_paragraph
                     # insert each topic to redis database
@@ -201,7 +201,7 @@ class DocumentInteraction():
                     if (REDIS_ACTIVATE == "TRUE"):
                         for topic in topics:
                             self.redis.insert_topic(topic)
-                    return new_paragraph
+                    return new_paragraph, topics
     
     def user_click_sentence_get_ref(self, sentence: str) -> str:
         for idx, paragraph in enumerate(self.data):

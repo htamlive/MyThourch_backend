@@ -33,13 +33,18 @@ async def hello_world():
 
 @app.route('/api/wiki_retrieve/', methods=['POST'])
 def listen_url():
-    print(request)
+    print(request[:10] + '... ')
     url = request.json['url']
     openai.api_key = request.json['apiKey']
+
+    send_stage("Crawling data from " + url)
+
     documentInteraction.insert_document(crawl_url(url))
     documentInteraction.processing_document()
     payload = documentInteraction.get_data()
-    print(payload)
+
+    send_stage("Crawling data from " + url + " Done")
+    print(payload[:10] + '... ')
     # payload = [["AI is used to show intelligence in activities such as speech recognition, computer vision, and language translation"], ["Examples of AI applications include web search engines (Google Search), recommendation systems (YouTube, Amazon, Netflix), understanding human speech (Siri, Alexa), self-driving cars (Waymo), generative or creative tools (ChatGPT, AI art), automated decision-making and strategic game systems (chess, Go)"], ["AI is used in a wide range of topics and activities"]]
     response = {
         "payload" : json.dumps(payload)
@@ -56,11 +61,12 @@ def listen_user():
     sentence = request.json['sentence']
     prompt = request.json['prompt']
     if (prompt == "Explain more about this"):
-        payload = documentInteraction.user_click_sentence_expand(sentence)
+        payload, topics = documentInteraction.user_click_sentence_expand(sentence)
 
-        print(payload)
+        print(payload[:10] + '... ')
         response = {
-            "payload" : json.dumps(payload)
+            "payload" : json.dumps(payload),
+            "topics" : json.dumps(topics)
         }
         return response
     elif (prompt == "Show me the references"):

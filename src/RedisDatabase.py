@@ -5,6 +5,7 @@ import numpy as np
 from redis import Redis
 from redis.commands.search.field import VectorField, TagField, NumericField
 from redis.commands.search.query import Query
+import json
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -44,6 +45,17 @@ class RedisDatabase():
         self.dict = {}
         if (REDIS_ACTIVATE == "TRUE"):
             self.r = Redis(host = host, port = port, password = password)
+
+    def add_defaut_topics_to_databse(self):
+        # read array from json file
+        self.send_stage("Adding default topics to database... ")
+        with open('src\default_topics.json') as f:
+            topics = json.load(f)
+        for topic in topics:
+            self.add_topic_to_db(topic)
+
+        self.send_stage("Adding default topics to database... Done")
+
 
     def get_idx(self, user_name : str):
         if(self.dict.get(user_name) is None):
