@@ -120,6 +120,7 @@ class DocumentInteraction():
     def __init__(self, send_stage: function):
         self.data = []
         self.paragraphs = []
+        self.topics_for_each_paragraph = []
         self.document = ""
         self.send_stage = send_stage
         self.model = ModelInteraction(send_stage)
@@ -159,7 +160,9 @@ class DocumentInteraction():
         self.paragraphs = self.model.split_document(self.document)
         result = ""
         for idx, paragraph in enumerate(self.paragraphs):
-            result += self.processing_paragraph(paragraph) + ' '
+            new_paragraph, topics = self.processing_paragraph_return_topics(paragraph)
+            self.topics_for_each_paragraph.append(topics)
+            result += new_paragraph + ' '
             if (REDIS_ACTIVATE == "TRUE"):
                 self.redis.insert_paragraph(f'para_{idx}', paragraph)
     
@@ -234,6 +237,19 @@ class DocumentInteraction():
             return self.model.summarize_paragraph(paragraph)
         else:
             return self.model.conditonal_summarize_paragraph(topics, paragraph)
+        
+    def processing_paragraph_return_topics(self, paragraph: str):
+        topics = self.model.extract_topic(paragraph)
+        
+        if (REDIS_ACTIVATE == "TRUE"):
+            for topic in topics:
+                if(self.redis.query_topic(topic) == None):
+                    topics.remove(topic)
+
+        if(len(topics) == 0):
+            return self.model.summarize_paragraph(paragraph), None
+        else:
+            return self.model.conditonal_summarize_paragraph(topics, paragraph), topics
 
     def paragraph_to_sentence(self, paragraph: str) -> list:
         """
