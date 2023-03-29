@@ -162,8 +162,10 @@ class DocumentInteraction():
             result += self.processing_paragraph(paragraph) + ' '
             if (REDIS_ACTIVATE == "TRUE"):
                 self.redis.insert_paragraph(f'para_{idx}', paragraph)
-        
+    
+        self.send_stage("Rephrasing document...")
         self.paragraphs = self.model.rephase_document(result)
+        self.send_stage("Rephrasing document... Done")
         
         
         for paragraph in self.paragraphs:

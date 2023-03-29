@@ -122,6 +122,8 @@ class RedisDatabase():
         if(key is not None):
             return False
         
+        self.send_stage('Adding paragraph to database...')
+
         info = {}
         info['metadata'] = paragraph
         embedding = self.get_embedding(paragraph)
@@ -129,6 +131,8 @@ class RedisDatabase():
         info[paragraph_vector_field] = query_vector
 
         self.r.hset(paragraph_key, mapping= info)
+
+        self.send_stage('Done!')
 
         return True
 
@@ -180,12 +184,18 @@ class RedisDatabase():
         return results
 
     def query_topic(self,topic, threshold = 0.9):
+        self.send_stage('Querying topic from database...')
         result = self.search(topic, k = 1, index_name= INDEX_NAME, search_by_field= topic_vector_field)
         #get score from result
+
+        self.send_stage('Querying topic from database... Done!')
         if(len(result.docs) == 0):
             return None
         
+        
+        
         score = 1 - abs(float(result.docs[0].vector_score))
+
         if(score >  threshold):
             return result.docs[0].metadata
         
@@ -201,12 +211,17 @@ class RedisDatabase():
 
     def insert_topic(self, topic):
 
+        self.send_stage('Inserting topic to database...')
+
         #get score from result
         result = self.query_topic(topic)
         if(result is not None):
             return False
 
         self.add_topic_to_db(topic, topic)
+
+        self.send_stage('Done!')
+
         return True
 
 
@@ -230,8 +245,10 @@ class RedisDatabase():
         #get score from result
         if(len(result.docs) == 0):
             return None
+
         score = 1 - abs(float(result.docs[0].vector_score))
         print(result.docs[0].vector_score)
+
         if(score >  threshold):
             return result.docs[0].metadata
         
@@ -239,10 +256,13 @@ class RedisDatabase():
         return None
     
     def query_paragraph_from_sentence(self, sentence : str):
+        self.send_stage('Querying paragraph from sentence...')
         key = self.query_paragraph_key_from_sentence(sentence)
-        
+        self.send_stage('Done!')
+
         if(key is None):
             return None
+
 
         paragraph = str(self.r.hget(key, 'metadata'), 'UTF-8')
         print("redis: " + paragraph)
