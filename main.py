@@ -52,7 +52,15 @@ def listen_url():
     return response
 
 
+@app.route('/api/topic_retrieve_from_context/', methods=['POST'])
+def listen_topics():
+    context = request.json['context']
+    payload = documentInteraction.extract_topic_from_database(context)
 
+    response = {
+        "payload" : json.dumps(payload)
+    }
+    return response
     
 
 @app.route('/api/user_interact/', methods=['POST'])
