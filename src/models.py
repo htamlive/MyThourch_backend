@@ -1,5 +1,7 @@
+#%%
 DEBUG = True
 
+from bs4 import *
 from src import complete_prompt
 from src.crawl_data import crawl_url
 import src.debug_helper
@@ -8,7 +10,10 @@ from src.RedisDatabase import *
 import os
 import openai
 import json
+from dotenv import load_dotenv
 
+load_dotenv('../.env.template')
+#%%
 # openai api key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 OPENAI_EMBEDDINGS_ENGINE = "text-embedding-ada-002"
@@ -18,14 +23,20 @@ TEMPERATURE = 0
 
 # redis
 REDIS_ACTIVATE = os.getenv("REDIS_ACTIVATE")
+#%%
+
+# print("openai.api_key: " + str(openai.api_key))
+# print("REDIS_ACTIVATE: " + str(REDIS_ACTIVATE))
+#%%
 
 # load prompt from json file
 prompt_list =  json.load(open('./src/prompt.json', 'r'))
 
 
 class ModelInteraction():
-    def __init__(self, send_stage: function):
-        self.send_stage = send_stage
+    def __init__(self, stageSender):
+        
+        self.stageSender = stageSender
         pass
     
     def complete(self, prompt, max_tokens: int = MAX_TOKENS) -> str:
@@ -117,20 +128,26 @@ class ModelInteraction():
         return response
 
 class DocumentInteraction():
-    def __init__(self, send_stage: function):
+    def __init__(self, stageSender):
+        print("DocumentInteraction")
         self.data = []
         self.paragraphs = []
         self.topics_for_each_paragraph = []
         self.document = ""
-        self.send_stage = send_stage
-        self.model = ModelInteraction(send_stage)
-        self.redis = RedisDatabase(send_stage)
+        self.stageSender = stageSender
+        self.model = ModelInteraction(stageSender)
+        self.redis = RedisDatabase(stageSender)
 
+        print("openai.api_key: " + str(openai.api_key))
+        print("REDIS_ACTIVATE: " + str(REDIS_ACTIVATE))
         if (REDIS_ACTIVATE == "TRUE"):
+            print('Redis is activated')
             # print("ERRORRRRRRRRRRRRRRRRRR")
-            self.redis.delete_data()
-            self.redis.create_index()
+            self.renew_index()
         
+    def renew_index(self):
+        self.redis.delete_data()
+        self.redis.create_index()
 
     def insert_document(self, document: str) -> None:
         self.document = document
@@ -138,8 +155,9 @@ class DocumentInteraction():
         self.paragraphs = []
         
         if (REDIS_ACTIVATE == "TRUE"):
-            self.redis.delete_data()
-            self.redis.create_index()
+            # self.redis.store_all_topics()
+            self.renew_index()
+            self.redis.add_defaut_topics_to_databse()
         
     def get_data(self) -> list:
         return self.data
@@ -166,15 +184,29 @@ class DocumentInteraction():
             if (REDIS_ACTIVATE == "TRUE"):
                 self.redis.insert_paragraph(f'para_{idx}', paragraph)
     
-        self.send_stage("Rephrasing document...")
+        self.stageSender.send_stage("Rephrasing document...")
         self.paragraphs = self.model.rephase_document(result)
-        self.send_stage("Rephrasing document... Done")
+        self.stageSender.send_stage("Rephrasing document... Done")
         
         
         for paragraph in self.paragraphs:
             self.data.append(self.paragraph_to_sentence(paragraph))
 
         return
+    
+    def insert_and_process_document(self, document: str):
+        self.insert_document(document)
+        self.processing_document()
+        return self.get_data()
+    
+    def insert_and_process_default_document(self):
+        #read default document from txxt file
+        default_document = ""
+        with open('src\wiki_1.txt', 'r') as file:
+            default_document = file.read().replace('\n', '')
+
+        self.insert_and_process_document(default_document)
+        return self.get_data()
     
     def user_click_sentence_expand(self, sentence: str) -> list:
         for idx, paragraph in enumerate(self.data):

@@ -5,8 +5,23 @@ import numpy as np
 from redis import Redis
 from redis.commands.search.field import VectorField, TagField, NumericField
 from redis.commands.search.query import Query
+from src.tempCodeRunnerFile import *
 import json
 
+#%%  Temporary code for testing (Remember to remove it before commiting)
+# import os
+# import openai
+# import numpy as np
+# from redis import Redis
+# from redis.commands.search.field import VectorField, TagField, NumericField
+# from redis.commands.search.query import Query
+# from tempCodeRunnerFile import *
+# import json
+# from dotenv import load_dotenv
+# load_dotenv('../.env.template')
+#%%
+from dotenv import load_dotenv
+load_dotenv('../.env.template')
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 host = os.getenv("REDIS_HOST")
@@ -18,6 +33,7 @@ REDIS_ACTIVATE = os.getenv("REDIS_ACTIVATE")
 # print("host: ", host)
 # print("port: ", port)
 # print("password: ", password)
+# print(REDIS_ACTIVATE)
 
 n_vec = 10000
 dim = 1536
@@ -37,24 +53,30 @@ documents = [
 
 class RedisDatabase():
     # Initialize OpenAI API with your API key
-    def __init__(self, send_stage: function, host = host, port = port, password = password):
+    def __init__(self, stageSender, host = host, port = port, password = password):
         self.host = host
         self.port = port
         self.password = password
-        self.send_stage = send_stage
+        self.stageSender = stageSender
         self.dict = {}
-        if (REDIS_ACTIVATE == "TRUE"):
-            self.r = Redis(host = host, port = port, password = password)
+        self.user_topics = {}
 
+        print(host, port, password, REDIS_ACTIVATE)
+        
+        if (REDIS_ACTIVATE == "TRUE"):
+            print("Connecting to Redis database...")
+            self.r = Redis(host = host, port = port, password = password)
+            print("Connecting to Redis database... Done")
     def add_defaut_topics_to_databse(self):
         # read array from json file
-        self.send_stage("Adding default topics to database... ")
+        self.stageSender.send_stage("Adding default topics to database... ")
         with open('src\default_topics.json') as f:
             topics = json.load(f)
         for topic in topics:
-            self.add_topic_to_db(topic)
+            self.add_topic_to_db(topic,topic)
+            self.user_topics[topic] = True
 
-        self.send_stage("Adding default topics to database... Done")
+        self.stageSender.send_stage("Adding default topics to database... Done")
 
 
     def get_idx(self, user_name : str):
@@ -90,11 +112,22 @@ class RedisDatabase():
         text = text.replace("\n", " ")
         return openai.Embedding.create(input = [text], model=model)['data'][0]['embedding']
 
+    def store_all_topics(self):
+        # store a set into a json file
+        with open(r'src\user_topics.json') as f:
+            json.dump(self.user_topics, f)
+
+    def load_user_topics(self):
+        # read array from json file
+        with open(r'src\user_topics.json') as f:
+            self.user_topics = json.load(f)
         
     def add_topic_to_db(self, key : str, text : str):
         self.r.hset(key, mapping= {topic_vector_field : np.array(self.get_embedding(text=text)[:dim], dtype=np.float32).tobytes(),
                             "metadata" : text,
                             rating_field_name: 10.0})
+        
+        self.user_topics[key] = True
 
     def get_paragraph_key(self, paragraph):
         embedding = self.get_embedding(paragraph)
@@ -134,7 +167,7 @@ class RedisDatabase():
         if(key is not None):
             return False
         
-        self.send_stage('Adding paragraph to database...')
+        self.stageSender.send_stage('Adding paragraph to database...')
 
         info = {}
         info['metadata'] = paragraph
@@ -144,7 +177,7 @@ class RedisDatabase():
 
         self.r.hset(paragraph_key, mapping= info)
 
-        self.send_stage('Done!')
+        self.stageSender.send_stage('Done!')
 
         return True
 
@@ -181,8 +214,6 @@ class RedisDatabase():
             key =f'{i}'
             self.add_topic_to_db(key, document)
 
-    #%%
-
     def search(self, query: str, index_name = INDEX_NAME, k: int = 5, search_by_field : str = vector_field_name):
         embedding = self.get_embedding(text = query)
         query_vector = np.array(embedding[:dim], dtype=np.float32).tobytes()
@@ -196,11 +227,11 @@ class RedisDatabase():
         return results
 
     def query_topic(self,topic, threshold = 0.9):
-        self.send_stage('Querying topic from database...')
+        self.stageSender.send_stage('Querying topic from database...')
         result = self.search(topic, k = 1, index_name= INDEX_NAME, search_by_field= topic_vector_field)
         #get score from result
 
-        self.send_stage('Querying topic from database... Done!')
+        self.stageSender.send_stage('Querying topic from database... Done!')
         if(len(result.docs) == 0):
             return None
         
@@ -223,7 +254,7 @@ class RedisDatabase():
 
     def insert_topic(self, topic):
 
-        self.send_stage('Inserting topic to database...')
+        self.stageSender.send_stage('Inserting topic to database...')
 
         #get score from result
         result = self.query_topic(topic)
@@ -232,7 +263,7 @@ class RedisDatabase():
 
         self.add_topic_to_db(topic, topic)
 
-        self.send_stage('Done!')
+        self.stageSender.send_stage('Done!')
 
         return True
 
@@ -268,9 +299,9 @@ class RedisDatabase():
         return None
     
     def query_paragraph_from_sentence(self, sentence : str):
-        self.send_stage('Querying paragraph from sentence...')
+        self.stageSender.send_stage('Querying paragraph from sentence...')
         key = self.query_paragraph_key_from_sentence(sentence)
-        self.send_stage('Done!')
+        self.stageSender.send_stage('Done!')
 
         if(key is None):
             return None
@@ -280,3 +311,10 @@ class RedisDatabase():
         print("redis: " + paragraph)
         return paragraph
     
+
+#%%
+# redis = RedisDatabase(send_stage= None)
+# redis.connect_host(host='localhost', port=6379, password=None)
+# redis.add_topic_to_db('topic1', 'topic1')
+    
+# %%

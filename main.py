@@ -1,9 +1,13 @@
+#%%
 import os
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv('.env.template')
+REDIS_ACTIVATE = os.getenv("REDIS_ACTIVATE")
+print(REDIS_ACTIVATE)
 
 from src.models import ModelInteraction, DocumentInteraction
 from src.crawl_data import crawl_url
+from src.StageSender import StageSender
 
 from flask import Flask,request
 import json
@@ -11,24 +15,24 @@ from flask_cors import CORS
 import openai
 from flask_socketio import SocketIO, emit
 
-
+#%%
 # print(os.environ["OPENAI_API_KEY"])
 # print(os.getenv("REDIS_HOST"))
-
 
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app)
 
-@socketio.on('process_stage')
-def send_stage(stage):
-    emit('stage_update', stage, broadcast=True)
 
-documentInteraction = DocumentInteraction(send_stage)
+def def_send_stage(stage):
+    print(stage)
+
+stageSender = StageSender(socketio)
+documentInteraction = DocumentInteraction(stageSender)
 
 @app.route("/")
-async def hello_world():
-    print(request)
+def hello_world():
+    #print(request)
     return "<p>Hello, World!</p>"
 
 @app.route('/api/wiki_retrieve/', methods=['POST'])
@@ -37,13 +41,11 @@ def listen_url():
     url = request.json['url']
     openai.api_key = request.json['apiKey']
 
-    send_stage("Crawling data from " + url)
+    stageSender.send_stage("Crawling data from " + url)
 
-    documentInteraction.insert_document(crawl_url(url))
-    documentInteraction.processing_document()
-    payload = documentInteraction.get_data()
+    payload = documentInteraction.insert_and_process_document(crawl_url(url))
 
-    send_stage("Crawling data from " + url + " Done")
+    stageSender.send_stage("Crawling data from " + url + " Done")
     print(payload[:10] + '... ')
     # payload = [["AI is used to show intelligence in activities such as speech recognition, computer vision, and language translation"], ["Examples of AI applications include web search engines (Google Search), recommendation systems (YouTube, Amazon, Netflix), understanding human speech (Siri, Alexa), self-driving cars (Waymo), generative or creative tools (ChatGPT, AI art), automated decision-making and strategic game systems (chess, Go)"], ["AI is used in a wide range of topics and activities"]]
     response = {
@@ -88,6 +90,13 @@ def listen_user():
     
     return "Error"
 
-
+#%%
+#documentInteraction.insert_and_process_default_document()
+#%%
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, allow_unsafe_werkzeug=True)
+    # send_stage("Hello")
+    
+    pass
+# %%
+# %%
