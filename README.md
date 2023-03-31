@@ -1,5 +1,5 @@
 # MyThorch-server
-![](https://i.ibb.co/cgb88Zd/Flow-Chart-drawio.png)
+![flow-chart](https://i.ibb.co/cgb88Zd/Flow-Chart-drawio.png)
 
 ## Installation
 
