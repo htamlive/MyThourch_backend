@@ -63,7 +63,7 @@ def listen_url():
     response = {
         "payload" : json.dumps(payload),
         "topics" : json.dumps(topics),
-        "title": title
+        "title": json.dumps(title)
     }
     return response
 
@@ -127,13 +127,78 @@ def listen_user():
     
     return "Error"
 
+@app.route('/api/test_user_interact/', methods=['POST'])
+def test_listen_user():
+    print(request)
+    prompt = request.json['prompt']
+    if (prompt == "Explain more about this"):
+        #open json file
+        with open('test/user_interact_explain_test.json') as json_file:
+            response = json.load(json_file)
+        return response
+    elif (prompt == "Show me the references"):
+        #open json file
+        with open('test/user_interact_ref_test.json') as json_file:
+            response = json.load(json_file)
+        return response
+    
+    return "Error"
+
 #%%
 #documentInteraction.insert_and_process_default_document()
 #%%
 if __name__ == '__main__':
     socketio.run(app, allow_unsafe_werkzeug=True)
     # send_stage("Hello")
+
+    # url = "https://en.wikipedia.org/wiki/Artificial_intelligence"
+    # title = get_title_from_url(url)
+    # openai.api_key = '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'
+
+    # stageSender.send_stage("Crawling data from " + url)
+
+    # payload, topics = documentInteraction.insert_and_process_document(crawl_url(url))
+
+    # stageSender.send_stage("Crawling data from " + url + " Done")
+    # # print(payload)
+    # # payload = [["AI is used to show intelligence in activities such as speech recognition, computer vision, and language translation"], ["Examples of AI applications include web search engines (Google Search), recommendation systems (YouTube, Amazon, Netflix), understanding human speech (Siri, Alexa), self-driving cars (Waymo), generative or creative tools (ChatGPT, AI art), automated decision-making and strategic game systems (chess, Go)"], ["AI is used in a wide range of topics and activities"]]
+    # response = {
+    #     "payload" : json.dumps(payload),
+    #     "topics" : json.dumps(topics),
+    #     "title": json.dumps(title)
+    # }
+
+    # print(response)
+
+    # # save response to test file
+    # with open(r'test\wiki_test_2.json', 'w') as outfile:
+    #     json.dump(response, outfile)
+
+    # test_sentences = payload[0][0]
+    # payload, topics = documentInteraction.user_click_sentence_expand(test_sentences)
+
+    # response = {
+    #         "payload" : json.dumps(payload),
+    #         "topics" : json.dumps(topics)
+    # }
+
+    # print(response)
+
+    # # save response to test file
+    # with open(r'test\wiki_test_3.json', 'w') as outfile:
+    #     json.dump(response, outfile)
+
+    # payload = documentInteraction.user_click_sentence_get_ref(test_sentences)
+
+    # print(payload)
+    # response = {
+    #     "payload" : json.dumps(payload)
+    # }
+    # print(response)
+
+    # # save response to test file
+    # with open(r'test\wiki_test_4.json', 'w') as outfile:
+    #     json.dump(response, outfile)
     
-    pass
 # %%
 # %%

@@ -228,7 +228,8 @@ class DocumentInteraction():
                         new_paragraph =  self.model.expand_topics_from_clue(topics, query, s)
 
                     new_paragraph = self.paragraph_to_sentence(new_paragraph)
-                    print(new_paragraph[:10] + '...')
+                    # print(new_paragraph)
+                    # print(new_paragraph[:10] + '...')
                     # update the paragraph
                     self.data[idx] = new_paragraph
                     # insert each topic to redis database
