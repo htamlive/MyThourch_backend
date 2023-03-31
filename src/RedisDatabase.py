@@ -21,7 +21,7 @@ import json
 # load_dotenv('../.env.template')
 #%%
 from dotenv import load_dotenv
-load_dotenv('../.env.template')
+load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 host = os.getenv("REDIS_HOST")

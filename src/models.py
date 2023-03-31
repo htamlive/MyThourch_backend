@@ -12,7 +12,7 @@ import openai
 import json
 from dotenv import load_dotenv
 
-load_dotenv('../.env.template')
+load_dotenv()
 #%%
 # openai api key
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -197,7 +197,7 @@ class DocumentInteraction():
     def insert_and_process_document(self, document: str):
         self.insert_document(document)
         self.processing_document()
-        return self.get_data()
+        return self.get_data(), self.topics_for_each_paragraph
     
     def insert_and_process_default_document(self):
         #read default document from txxt file
@@ -206,7 +206,7 @@ class DocumentInteraction():
             default_document = file.read().replace('\n', '')
 
         self.insert_and_process_document(default_document)
-        return self.get_data()
+        return self.get_data(), self.topics_for_each_paragraph
     
     def user_click_sentence_expand(self, sentence: str) -> list:
         for idx, paragraph in enumerate(self.data):
